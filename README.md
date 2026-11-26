@@ -24,8 +24,8 @@ The page loads poster images from Unsplash and fonts from Google Fonts. Those as
 1. Choose a language on the initial account screen. Enter a demo email address and a password with at least eight characters to continue. Both sign-up and sign-in perform local format checks only; they do not verify an existing account or password. The application stores the email locally and does not persist the password.
 2. Browse the featured story and catalogue. Search by title, genre, or tags, and use the genre filters to narrow the list.
 3. Select the bookmark button to save or remove a story. Open **My library** to see saved stories.
-4. Open a story to view its description and six sample episode buttons. The first three open the player preview; later episodes open the membership screen unless demo membership is enabled. The preview contains a poster and controls but does not play video.
-5. Open **Fable Plus**, choose a monthly or annual plan, and continue to enable the local membership preview. No payment is collected and no subscription is created.
+4. Open a story to view its description and six sample episode buttons. The first three open the player preview; later episodes open the membership screen unless demo membership is enabled. Hover over a catalogue poster, or focus it with the keyboard, to play a muted looping preview. Moving away pauses and resets the preview. If the remote preview video cannot load, the poster remains visible.
+5. Open **Fable Plus** to compare free access with VIP access, choose a monthly or annual plan, select Visa, Mastercard, WeChat Pay, or Alipay, and create a local demo order. Free accounts can watch the first three episodes of each series, while the VIP preview unlocks the full sample episode list. No payment is collected and no subscription is created.
 6. Change the language using the account screen or the signed-in navigation. Sign out using the sidebar button to return to the account screen.
 
 The **Popular** button currently displays a notification; it does not change the catalogue order. Episode counts, ratings, and membership prices are demonstration data.
@@ -37,9 +37,10 @@ The **Popular** button currently displays a notification; it does not change the
 - `vite.config.ts` enables the React plugin; `tsconfig.json` defines TypeScript compiler options.
 - `src/main.tsx` mounts the application.
 - `src/vite-env.d.ts` provides Vite client and asset type declarations.
-- `src/App.tsx` contains the account gate, catalogue, search, library, story details, preview player and membership checkout UI.
-- `src/dramas.ts` contains the demo series catalogue and poster references.
+- `src/App.tsx` contains the account gate, catalogue, search, library, story details, hover preview player and membership checkout UI.
+- `src/dramas.ts` contains the demo series catalogue, poster references, and optional hover preview video URLs.
 - `src/i18n.ts` contains locale detection, translated interface copy, translated genre labels, and localized drama metadata.
+- `src/vipApi.ts` contains the local VIP registration and payment adapter contract for Visa, Mastercard, WeChat Pay, and Alipay.
 - `src/styles.css` defines the responsive visual system.
 - `.gitignore` excludes dependencies, generated build output, and the Vite cache.
 - `README.md` and `README.zh-CN.md` provide the English and Chinese documentation.
@@ -56,6 +57,7 @@ The application uses the following browser `localStorage` keys:
 | `fable-demo-saved` | Saved story IDs |
 | `fable-demo-member` | Whether membership preview is enabled |
 | `fable-demo-locale` | Selected language |
+| `fable-demo-vip-orders` | Local demo VIP orders created in the checkout dialog |
 
 These values are scoped to the browser origin, rather than individual accounts. Sign-out removes the demo email only; it preserves saved stories, membership preview, and language. Different ports use separate storage. Clearing this site's storage resets the demo state. There is no server synchronization or per-user data isolation.
 
@@ -82,4 +84,4 @@ The build command runs TypeScript checking and generates static assets in `dist/
 
 ## Before production use
 
-Connect an authentication service, a backend catalogue and database, licensed episode media, and a payment provider. Add server-side authorization and per-user persistence for subscriptions and saved stories. The current account gate and membership flag do not enforce access control. Terms and privacy buttons show a notice; publish the actual legal documents before launch.
+Connect an authentication service, a backend catalogue and database, licensed episode media, and a payment provider. Replace the local functions in `src/vipApi.ts` with server calls for VIP registration, order creation, and payment confirmation. Add server-side authorization and per-user persistence for subscriptions and saved stories. The current account gate, membership flag, and order adapter do not enforce access control or collect real payments. Terms and privacy buttons show a notice; publish the actual legal documents before launch.

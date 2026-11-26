@@ -7,6 +7,7 @@ export type Drama = {
   rating: string;
   image: string;
   imagePosition?: string;
+  previewVideo?: string;
   accent: string;
   description: string;
   tags: string[];
@@ -14,6 +15,11 @@ export type Drama = {
 
 const unsplash = (id: string, width = 800) =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${width}&q=85`;
+
+const previewVideos = [
+  'https://cdn.coverr.co/videos/coverr-a-woman-walking-in-the-city-1574/1080p.mp4',
+  'https://cdn.coverr.co/videos/coverr-woman-in-a-red-dress-1573/1080p.mp4',
+] as const;
 
 export const dramas: Drama[] = [
   {
@@ -25,6 +31,7 @@ export const dramas: Drama[] = [
     rating: '9.8',
     image: unsplash('photo-1534528741775-53994a69daeb', 900),
     imagePosition: 'center 32%',
+    previewVideo: previewVideos[0],
     accent: '#d64e3d',
     description: 'After five years away, an heiress returns under a new name to reclaim her family empire and settle the score with the man who betrayed her.',
     tags: ['Revenge', 'Family secrets', 'Strong lead'],
@@ -38,6 +45,7 @@ export const dramas: Drama[] = [
     rating: '9.5',
     image: unsplash('photo-1500648767791-00dcc994a43e', 700),
     imagePosition: 'center 27%',
+    previewVideo: previewVideos[1],
     accent: '#9f552f',
     description: 'A guarded bodyguard and a runaway bride are forced into close quarters as a family feud follows them across the city.',
     tags: ['Romance', 'Bodyguard', 'Slow burn'],
@@ -51,6 +59,7 @@ export const dramas: Drama[] = [
     rating: '9.7',
     image: unsplash('photo-1531123897727-8f129e1688ce', 700),
     imagePosition: 'center 28%',
+    previewVideo: previewVideos[0],
     accent: '#94604c',
     description: 'A woman wakes up on the morning her marriage fell apart. This time, she chooses her own future and the friend who never left.',
     tags: ['Romance', 'Second chance', 'Rebirth'],
@@ -64,6 +73,7 @@ export const dramas: Drama[] = [
     rating: '9.6',
     image: unsplash('photo-1506794778202-cad84cf45f1d', 700),
     imagePosition: 'center 25%',
+    previewVideo: previewVideos[1],
     accent: '#57453c',
     description: 'The exiled heir returns to a kingdom on the brink, carrying the secret that could save the crown or destroy it for good.',
     tags: ['Fantasy', 'Royalty', 'Adventure'],
@@ -77,6 +87,7 @@ export const dramas: Drama[] = [
     rating: '9.4',
     image: unsplash('photo-1529139574466-a303027c1d8b', 700),
     imagePosition: 'center 28%',
+    previewVideo: previewVideos[0],
     accent: '#a04439',
     description: 'Two ambitious heirs enter a ruthless takeover battle and discover the most dangerous thing they could lose is each other.',
     tags: ['Billionaire', 'Workplace', 'Enemies to lovers'],
@@ -90,6 +101,7 @@ export const dramas: Drama[] = [
     rating: '9.3',
     image: unsplash('photo-1507003211169-0a1dd7228f2d', 700),
     imagePosition: 'center 24%',
+    previewVideo: previewVideos[1],
     accent: '#464a48',
     description: 'A sharp-eyed journalist reopens a closed case and finds herself caught between a suspect who knows her past and a truth no one wants printed.',
     tags: ['Mystery', 'Crime', 'Suspense'],
@@ -103,6 +115,7 @@ export const dramas: Drama[] = [
     rating: '9.6',
     image: unsplash('photo-1494790108377-be9c29b29330', 700),
     imagePosition: 'center 27%',
+    previewVideo: previewVideos[0],
     accent: '#996a47',
     description: 'A practical agreement brings a humble artist into the orbit of a reclusive billionaire. Their carefully drawn lines do not last long.',
     tags: ['Billionaire', 'Contract marriage', 'Romance'],
@@ -116,6 +129,7 @@ export const dramas: Drama[] = [
     rating: '9.5',
     image: unsplash('photo-1517841905240-472988babdf9', 700),
     imagePosition: 'center 25%',
+    previewVideo: previewVideos[1],
     accent: '#84715e',
     description: 'An outsider discovers the bond that links her to the leader of a hidden pack and the prophecy that puts both their worlds at risk.',
     tags: ['Werewolf', 'Fantasy', 'Fated mates'],
@@ -129,6 +143,7 @@ export const dramas: Drama[] = [
     rating: '9.2',
     image: unsplash('photo-1524504388940-b1c1722653e1', 700),
     imagePosition: 'center 30%',
+    previewVideo: previewVideos[0],
     accent: '#98685b',
     description: 'A last-minute wedding joins the children of rival families. Their vow is meant to bring peace, but the secrets around it threaten to do the opposite.',
     tags: ['Romance', 'Marriage', 'Family drama'],
@@ -142,6 +157,7 @@ export const dramas: Drama[] = [
     rating: '9.1',
     image: unsplash('photo-1534751516642-a1af1ef26a56', 700),
     imagePosition: 'center 24%',
+    previewVideo: previewVideos[1],
     accent: '#b47755',
     description: 'A night-shift producer and a demanding creative director keep crossing paths after hours, where the rules feel a little less certain.',
     tags: ['Office', 'Romance', 'After hours'],

@@ -1,4 +1,4 @@
-import { FormEvent, MouseEvent, ReactNode, useEffect, useMemo, useState } from 'react';
+import { FormEvent, MouseEvent, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowRight,
   Bookmark,
@@ -16,10 +16,19 @@ import {
 } from 'lucide-react';
 import { Drama, dramas, genres } from './dramas';
 import { getLocaleFromStorage, getLocalizedDrama, getMessages, localeOptions, localeStorageKey, Locale, Messages } from './i18n';
+import { createVipOrder, PaymentMethod } from './vipApi';
 
 type AuthMode = 'login' | 'signup';
 type SubscriptionPlan = 'monthly' | 'annual';
 type Page = 'discover' | 'library';
+type CheckoutStatus = 'idle' | 'processing' | 'success';
+
+const paymentMethods: Array<{ value: PaymentMethod; labelKey: 'visa' | 'mastercard' | 'wechatPay' | 'alipay' }> = [
+  { value: 'visa', labelKey: 'visa' },
+  { value: 'mastercard', labelKey: 'mastercard' },
+  { value: 'wechat', labelKey: 'wechatPay' },
+  { value: 'alipay', labelKey: 'alipay' },
+];
 
 const DEMO_USER_KEY = 'fable-demo-user';
 const DEMO_MEMBER_KEY = 'fable-demo-member';
@@ -115,10 +124,32 @@ function AuthScreen({ locale, onLocaleChange, onEnter }: { locale: Locale; onLoc
 }
 
 function DramaCard({ drama, saved, copy, onOpen, onSave }: { drama: Drama; saved: boolean; copy: Messages; onOpen: () => void; onSave: (event: MouseEvent<HTMLButtonElement>) => void }) {
+  const previewRef = useRef<HTMLVideoElement>(null);
+  const [previewing, setPreviewing] = useState(false);
+  const [previewReady, setPreviewReady] = useState(false);
+  const [previewFailed, setPreviewFailed] = useState(false);
+
+  function startPreview() {
+    if (!drama.previewVideo || previewFailed) return;
+    setPreviewing(true);
+    const video = previewRef.current;
+    if (video) void video.play().catch(() => setPreviewFailed(true));
+  }
+
+  function stopPreview() {
+    setPreviewing(false);
+    const video = previewRef.current;
+    if (video) {
+      video.pause();
+      video.currentTime = 0;
+    }
+  }
+
   return (
     <article className="drama-card">
-      <button type="button" className="poster-button" onClick={onOpen} aria-label={copy.viewDrama(drama.title)}>
+      <button type="button" className="poster-button" onClick={onOpen} onMouseEnter={startPreview} onMouseLeave={stopPreview} onFocus={startPreview} onBlur={stopPreview} aria-label={copy.viewDrama(drama.title)}>
         <img src={drama.image} alt="" loading="lazy" style={{ objectPosition: drama.imagePosition }} />
+        {drama.previewVideo && <video ref={previewRef} className={`poster-preview ${previewing && previewReady ? 'is-active' : ''}`} src={drama.previewVideo} muted playsInline loop preload="metadata" onLoadedData={() => setPreviewReady(true)} onError={() => setPreviewFailed(true)} style={{ objectPosition: drama.imagePosition }} aria-hidden="true" />}
         <span className="poster-vignette" />
         <span className="poster-label">{copy.genreLabel(drama.genre).toUpperCase()}</span>
         <span className="poster-score"><Star size={11} fill="currentColor" /> {drama.rating}</span>
@@ -154,6 +185,9 @@ function App() {
   const [query, setQuery] = useState('');
   const [showMembership, setShowMembership] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan>('annual');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('visa');
+  const [checkoutStatus, setCheckoutStatus] = useState<CheckoutStatus>('idle');
+  const [lastOrderId, setLastOrderId] = useState('');
   const [activeDrama, setActiveDrama] = useState<Drama | null>(null);
   const [playingDrama, setPlayingDrama] = useState<Drama | null>(null);
   const [toast, setToast] = useState('');
@@ -196,11 +230,15 @@ function App() {
     setToast(next.includes(drama.id) ? copy.savedToast : copy.removedToast);
   }
 
-  function activateMembership() {
+  async function activateMembership() {
+    if (checkoutStatus === 'processing') return;
+    setCheckoutStatus('processing');
+    const order = await createVipOrder({ email: user, plan: selectedPlan, paymentMethod, locale });
     localStorage.setItem(DEMO_MEMBER_KEY, 'true');
     setIsMember(true);
-    setShowMembership(false);
-    setToast(copy.membershipPreviewToast);
+    setLastOrderId(order.orderId);
+    setCheckoutStatus('success');
+    setToast(copy.orderCreated(order.orderId));
   }
 
   function watch(drama: Drama) {
@@ -234,7 +272,7 @@ function App() {
           <p>{isMember ? copy.unlocked : copy.noInterruptions}</p>
           <button type="button" onClick={() => setShowMembership(true)}>{isMember ? copy.membershipDetails : copy.exploreMembership}<ArrowRight size={13} /></button>
         </div>
-        <div className="sidebar-user"><span className="avatar">{user.slice(0, 1).toUpperCase()}</span><span className="user-copy"><strong>{user.split('@')[0]}</strong><small>{isMember ? copy.fablePlus : copy.freeAccount}</small></span><button type="button" title={copy.signIn} aria-label={copy.signIn} onClick={() => { localStorage.removeItem(DEMO_USER_KEY); setUser(''); }}><LogOut size={16} /></button></div>
+          <div className="sidebar-user"><span className="avatar">{user.slice(0, 1).toUpperCase()}</span><span className="user-copy"><strong>{user.split('@')[0]}</strong><small>{isMember ? copy.vipAccess : copy.freeAccess}</small></span><button type="button" title={copy.signIn} aria-label={copy.signIn} onClick={() => { localStorage.removeItem(DEMO_USER_KEY); setUser(''); }}><LogOut size={16} /></button></div>
       </aside>
 
       <main className="main-content">
@@ -263,7 +301,7 @@ function App() {
 
       {playingDrama && <Dialog className="player-dialog" onClose={() => setPlayingDrama(null)}><button className="dialog-close player-close" type="button" aria-label={copy.closePlayer} onClick={() => setPlayingDrama(null)}><X size={19} /></button><div className="player-screen" style={{ backgroundImage: `linear-gradient(180deg, #09090933, #090909e8), url("${playingDrama.image}")` }}><span className="player-preview-label">{copy.previewPlayer}</span><div className="player-center"><button type="button" aria-label={copy.playPreview} onClick={() => setToast(copy.videoToast)}><Play size={25} fill="currentColor" /></button><strong>{playingDrama.title}</strong><span>{copy.episodePreview}</span></div><div className="player-controls"><span>00:00</span><div className="player-track"><i /></div><span>00:00</span></div></div><div className="player-caption"><span><Clapperboard size={16} /> {copy.videoNotConnected}</span><button type="button" onClick={() => { setPlayingDrama(null); setShowMembership(true); }}>{copy.unlockAllEpisodes} <Crown size={14} /></button></div></Dialog>}
 
-      {showMembership && <Dialog className="membership-dialog" onClose={() => setShowMembership(false)}><button className="dialog-close" type="button" aria-label={copy.closeMembership} onClick={() => setShowMembership(false)}><X size={19} /></button><div className="membership-header"><span className="crown-orbit"><Crown size={20} /></span><span className="eyebrow">{copy.membershipEyebrow}</span><h2>{copy.membershipTitleLineOne}<br /><em>{copy.membershipTitleLineTwo}</em></h2><p>{copy.membershipDescription}</p></div><div className="plan-options"><button type="button" className={`plan-option ${selectedPlan === 'monthly' ? 'selected' : ''}`} onClick={() => setSelectedPlan('monthly')}><span className="plan-radio" /><span className="plan-copy"><strong>{copy.monthly}</strong><small>{copy.monthlyDescription}</small></span><span className="plan-price"><strong>{monthlyPrice}</strong><small>/ {copy.monthly.toLowerCase()}</small></span></button><button type="button" className={`plan-option ${selectedPlan === 'annual' ? 'selected' : ''}`} onClick={() => setSelectedPlan('annual')}><span className="plan-radio" /><span className="plan-copy"><strong>{copy.annual}</strong><small>{copy.annualDescription}</small></span><span className="plan-price"><strong>{annualPrice}</strong><small>/ {copy.annual.toLowerCase()}</small></span><span className="plan-savings">{copy.save50}</span></button></div><ul className="membership-benefits"><li><Check size={15} /> {copy.unlockEveryEpisode}</li><li><Check size={15} /> {copy.newSeriesWeekly}</li><li><Check size={15} /> {copy.watchWithoutInterruptions}</li></ul><button className="button-primary membership-cta" type="button" onClick={activateMembership}>{isMember ? copy.membershipActive : copy.continueWith(selectedPlan === 'annual' ? annualPrice : monthlyPrice)}<ArrowRight size={16} /></button><p className="checkout-note">{copy.checkoutNote}</p></Dialog>}
+      {showMembership && <Dialog className="membership-dialog" onClose={() => setShowMembership(false)}><button className="dialog-close" type="button" aria-label={copy.closeMembership} onClick={() => setShowMembership(false)}><X size={19} /></button><div className="membership-header"><span className="crown-orbit"><Crown size={20} /></span><span className="eyebrow">{copy.membershipEyebrow}</span><h2>{copy.membershipTitleLineOne}<br /><em>{copy.membershipTitleLineTwo}</em></h2><p>{copy.membershipDescription}</p></div><div className="access-summary"><div><strong>{copy.freeAccess}</strong><p>{copy.freeAccessDetails}</p></div><div className="vip-access"><strong>{copy.vipAccess}</strong><p>{copy.vipAccessDetails}</p></div></div><div className="plan-options"><button type="button" className={`plan-option ${selectedPlan === 'monthly' ? 'selected' : ''}`} onClick={() => setSelectedPlan('monthly')}><span className="plan-radio" /><span className="plan-copy"><strong>{copy.monthly}</strong><small>{copy.monthlyDescription}</small></span><span className="plan-price"><strong>{monthlyPrice}</strong><small>/ {copy.monthly.toLowerCase()}</small></span></button><button type="button" className={`plan-option ${selectedPlan === 'annual' ? 'selected' : ''}`} onClick={() => setSelectedPlan('annual')}><span className="plan-radio" /><span className="plan-copy"><strong>{copy.annual}</strong><small>{copy.annualDescription}</small></span><span className="plan-price"><strong>{annualPrice}</strong><small>/ {copy.annual.toLowerCase()}</small></span><span className="plan-savings">{copy.save50}</span></button></div><div className="payment-section"><span className="payment-label">{copy.paymentMethod}</span><div className="payment-options" role="radiogroup" aria-label={copy.paymentMethod}>{paymentMethods.map(method => <button type="button" key={method.value} className={paymentMethod === method.value ? 'selected' : ''} aria-pressed={paymentMethod === method.value} onClick={() => setPaymentMethod(method.value)}>{copy[method.labelKey]}</button>)}</div></div><ul className="membership-benefits"><li><Check size={15} /> {copy.unlockEveryEpisode}</li><li><Check size={15} /> {copy.newSeriesWeekly}</li><li><Check size={15} /> {copy.watchWithoutInterruptions}</li></ul>{checkoutStatus === 'processing' && <p className="checkout-status" role="status">{copy.paymentProcessing}</p>}{checkoutStatus === 'success' && <div className="checkout-status success" role="status"><strong>{copy.paymentSuccess}</strong><span>{copy.orderIdLabel}: {lastOrderId}</span></div>}<button className="button-primary membership-cta" type="button" onClick={activateMembership} disabled={checkoutStatus === 'processing'}>{isMember ? copy.rechargeVip : copy.vipRegistration} · {selectedPlan === 'annual' ? annualPrice : monthlyPrice}<ArrowRight size={16} /></button><p className="checkout-note">{copy.paymentDemoNote} {copy.checkoutNote}</p></Dialog>}
 
       {toast && <div className="toast" role="status"><Check size={15} />{toast}</div>}
     </div>

@@ -2,7 +2,7 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-An independent short-drama streaming interface prototype built with Vite, React, and TypeScript. It includes a demo account gate, a searchable catalogue, a saved-story library, episode details, a player preview, and a membership preview. The interface supports English, Simplified Chinese, Traditional Chinese, Spanish, and Brazilian Portuguese.
+An independent short-drama streaming interface prototype built with Vite, React, and TypeScript. It includes a demo account gate, a searchable catalogue, a saved-story library, episode details, a player preview, and a membership preview. The interface supports English, Simplified Chinese, Traditional Chinese, Spanish, and Brazilian Portuguese, with enlarged small text for navigation and metadata readability.
 
 This repository is a frontend application. It does not include a backend API, database, real authentication, video delivery, or payment processing.
 
@@ -26,7 +26,7 @@ The page loads poster images from Unsplash and fonts from Google Fonts. Those as
 3. Select the bookmark button to save or remove a story. Open **My library** to see saved stories.
 4. Open a story to view its description and six sample episode buttons. The first three open the player preview; later episodes open the membership screen unless demo membership is enabled. Hover over a catalogue poster, or focus it with the keyboard, to play a muted looping preview. Moving away pauses and resets the preview. If the remote preview video cannot load, the poster remains visible.
 5. Open **Fable Plus** to compare free access with VIP access, choose a monthly or annual plan, select Visa, Mastercard, WeChat Pay, or Alipay, and create a local demo order. Free accounts can watch the first three episodes of each series, while the VIP preview unlocks the full sample episode list. No payment is collected and no subscription is created.
-6. Change the language using the account screen or the signed-in navigation. Sign out using the sidebar button to return to the account screen.
+6. Change the language using the account screen or the signed-in navigation. The top-bar language menu keeps enough width to show its options. Sign out using the sidebar button to return to the account screen.
 
 The **Popular** button currently displays a notification; it does not change the catalogue order. Episode counts, ratings, and membership prices are demonstration data.
 

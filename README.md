@@ -2,7 +2,7 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-An independent short-drama streaming interface prototype built with Vite, React, and TypeScript. It includes a demo account gate, a searchable catalogue, a saved-story library, episode details, a player preview, and a membership preview. The interface supports English, Simplified Chinese, Traditional Chinese, Spanish, and Brazilian Portuguese, with enlarged small text for navigation and metadata readability.
+An independent short-drama streaming interface prototype built with Vite, React, and TypeScript. It includes a demo account gate, a searchable catalogue, a saved-story library, episode details, a player preview, and a membership preview. The interface supports English, Simplified Chinese, Traditional Chinese, Spanish, and Brazilian Portuguese. Compact navigation, metadata, and control text uses a 1.1x readability scale with a 10px minimum.
 
 This repository is a frontend application. It does not include a backend API, database, real authentication, video delivery, or payment processing.
 
